@@ -24,13 +24,13 @@ DialoFlow模型: 建模对话动态信息流
 $$
 \mathbf{I}_{k}=\mathbf{C}_{k+1}-\mathbf{C}_{k}
 $$
-![img](file:///C:\Users\l\AppData\Roaming\Tencent\Users\1377330332\QQ\WinTemp\RichOle\G%L_R3AY183GQONFGWQ~2BY.png)
+![img](https://gitee.com/cao-hu/pictures/raw/master/img/WV[IDDZBC_Y8_U2%SHZ2VGM.png)
 
 DialoFlow首先对对话历史进行编码, 并根据之前所有的历史上下文 $C_{1}, C_{2}, \ldots, C_{k}$ 预测未来的上下文 $C_{k+1}^{\prime}$ 然后在回复生成阶段, 模 型获取预测的目标语义影响 $I_{k}^{\prime}$, 并考虑预测语义影响和历史子句生成目标回复 $u_{k}$ 。
 
 ### 2.2 模型架构
 
-![img](file:///C:\Users\l\AppData\Roaming\Tencent\Users\1377330332\QQ\WinTemp\RichOle\0WD(6YHCPBL}GF)2XY9$R`S.png)
+![img](https://gitee.com/cao-hu/pictures/raw/master/img/0WD(6YHCPBL%7DGF)2XY9$R%60S.png)
 
 ## 备注
 
@@ -46,8 +46,10 @@ perplexity(困惑度)的基本思想是：当语言模型训练完之后，测�
 
 PPL的计算过程如下：
 对于一段句子(sentence)s由词构成，即:s=w1w2…wn, w代表词
+
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20210609112811718.png)
 对两边都取对数，则:
+
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20210609112909754.png)
 句子概率越大，语言模型越好，迷惑度越小。
 
@@ -65,7 +67,7 @@ M为对话的回合数，用$（s_{k}+1） / 2$​将相似度值和P一样缩�
 
 **3、案例分析**
 
-![img](file:///C:\Users\l\AppData\Roaming\Tencent\Users\1377330332\QQ\WinTemp\RichOle\X5(5HI)SKI4TQWRJX2FZ{0C.png)
+![img](https://gitee.com/cao-hu/pictures/raw/master/img/X5(5HI)SKI4TQWRJX2FZ%7B0C.png)
 
 上图显示了由DialoFlow编码的人机对话的语义上下文的二维T-SNE可视化。对话可以分为四个话题:问候(1 ~ 4)，谈论为什么糟糕的一天(5 ~ 13)，解释看医生的可怕经历(14 ~ 18)，讨论游泳(19 ~ 26)。
 
