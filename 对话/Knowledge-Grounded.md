@@ -59,9 +59,9 @@ $\mathcal{L}_{C E}=-\frac{1}{n} \sum_{i=1}^{n} \log p\left(y_{i} \mid y_{<i}, x,
 
 在训练时，我们根据gold response的entailment,lexical precision,objective voice来设置控制特征标记。 在解码时，控制代码被设置为这些指标所需的值。
 
-+ **Objective Voice**:话语是否包含第一人称代词，<first-person>,<no-first-person>，解码时，统一使用<no-first-person>控制标记。
-+ **Lexical Precision**：我们根据回复和evidence的词汇精度，将训练话语分为（<high-prec>,<med-prec>,<low-prec>）。解码时，总是使用<high-prec>。
-+ **Entailment**：我们用NLI 分类器的输出添加控制码（<entailed>,<non-entailed>）。解码时，总是使用<entailed>。
++ **Objective Voice**:话语是否包含第一人称代词，\<first-person>,\<no-first-person>，解码时，统一使用\<no-first-person>控制标记。
++ **Lexical Precision**：我们根据回复和evidence的词汇精度，将训练话语分为（\<high-prec>,\<med-prec>,\<low-prec>）。解码时，总是使用\<high-prec>。
++ **Entailment**：我们用NLI 分类器的输出添加控制码（\<entailed>,\<non-entailed>）。解码时，总是使用\<entailed>。
 
 ****
 
