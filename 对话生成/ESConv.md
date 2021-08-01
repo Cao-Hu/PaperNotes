@@ -4,7 +4,7 @@ ACL 2021
 
 面向情感支持的对话系统
 
-论文链接：
+论文链接：https://aclanthology.org/2021.acl-long.269/
 
 ## 简介
 
