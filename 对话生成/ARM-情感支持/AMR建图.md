@@ -116,5 +116,10 @@ $$
 \hat{e}_{i j} &=\frac{\left(W^{Q} h_{i}^{l-1}\right)^{T}\left(W^{K} h_{j}^{l-1}+W^{R}{\boldsymbol{r}}_{i j}\right)}{\sqrt{d}}
 \end{aligned}\tag{10}
 $$
-其中 $W_R$ 是变换矩阵，$\boldsymbol{r_{i j}}$ 是关系 rij 的嵌入，d 是隐藏状态大小，{h0 1, h0 2, ..., h0 M} = {n1, n2, ..., nM}。 然后将 ni 的隐藏状态更新为：
-
+其中 $W_R$ 是变换矩阵，$\boldsymbol{r_{i j}}$ 是关系 rij 的嵌入，d 是隐藏状态大小，$\left\{h_{1}^{0}, h_{2}^{0}, \ldots, h_{M}^{0}\right\}=\left\{\boldsymbol{n}_{1}, \boldsymbol{n}_{2}, \ldots, \boldsymbol{n}_{M}\right\}$。 然后将 ni 的隐藏状态更新为：
+$$
+h_{i}^{l}=\sum_{j=1}^{M} \alpha_{i j}\left(W^{V} h_{j}^{l-1}+W^{R}{r}_{i j}\right)\tag{11}
+$$
+其中 $W^V$ 是参数矩阵。 总的来说，给定一个输入 AMR 图，$$
+\mathcal{G}=\langle\mathcal{V}, \mathcal{E}\rangle
+$$，图 Transformer 编码器可以写成
