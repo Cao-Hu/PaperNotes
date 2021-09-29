@@ -123,3 +123,97 @@ $$
 其中 $W^V$ 是参数矩阵。 总的来说，给定一个输入 AMR 图，$$
 \mathcal{G}=\langle\mathcal{V}, \mathcal{E}\rangle
 $$，图 Transformer 编码器可以写成
+$$
+H=\text { GraphEncoder }(\operatorname{emb}(\mathcal{V}), \operatorname{emb}(\mathcal{E}))\tag{12}
+$$
+其中 $$
+H=\left\{h_{1}^{L}, h_{2}^{L}, \ldots, h_{M}^{L}\right\}
+$$表示顶层图编码器隐藏状态。
+
+### 4.2 Enriching Text Representation
+
+我们首先使用 JAMR aligner (Flanigan et al., 2014 [A Discriminative Graph-Based Parser for the Abstract Meaning Representation](https://aclanthology.org/P14-1134.pdf)) 获得节点到单词的对齐，然后采用对齐将 AMR 边缘投影到文本上，规则如下：
+$$
+\hat{r}_{i j}=\left\{\begin{array}{rr}
+r_{i^{\prime} j^{\prime}}, & \text { if } \mathcal{A}\left(n_{i^{\prime}}\right)=w_{i}, \mathcal{A}\left(n_{j^{\prime}}\right)=w_{j} \\
+\text { Self, } & \text { if } i=j \\
+\text { None, } & \text { otherwise }
+\end{array}\right.\tag{13}
+$$
+其中 A 是 one-to-K 对齐（K ∈ [0, . . , N]）。 这样，我们就得到了一个投影图 $$
+\mathcal{G}^{\prime}=\left\langle\mathcal{V}^{\prime}, \mathcal{E}^{\prime}\right\rangle
+$$，其中 $\mathcal{V}^{\prime}$ 表示输入词的集合 {w1, w2, ..., wN}，$\mathcal{E}^{\prime}$ 表示一组word-to-word语义关系。
+
+​		受之前 AMR 图建模工作的启发，我们采用了一个分层编码器，该编码器堆叠了一个序列编码器和一个图编码器。 序列编码器 (SeqEncoder) 将对话历史转换为一组隐藏状态：
+$$
+H^{S}=\operatorname{SeqEncoder}(\operatorname{emb}(\mathcal{S}))\tag{14}
+$$
+​		图编码器将投影的关系特征合并到 $H^S$ 中：
+$$
+H^{\hat{S}}=\text { GraphEncoder }\left(H^{S}, \operatorname{emb}\left(\mathcal{E}^{\prime}\right)\right)\tag{15}
+$$
+​		此外，我们在图适配器和序列编码器之间添加了一个残差连接，以融合细化前后的词表示（如图 3（b）所示）：
+$$
+H^{F}=\operatorname{LayerNorm}\left(H^{S}+H^{\hat{S}}\right)\tag{16}
+$$
+​		其中 LayerNorm 表示层标准化。 我们将分层编码器命名为 *Hier*，它可用于对话理解和对话响应生成。
+
+### 4.3 Leveraging both Text and Structure Cues
+
+我们考虑使用双编码器网络整合文本线索和 AMR 结构线索以进行对话理解和响应生成。 
+
+​		首先，序列编码器用于使用公式 1 将对话历史 S 转换为*text memory*（表示为 $$
+H^{S}=\left\{h_{1}^{S}, h_{2}^{S}, \ldots, h_{N}^{S}\right\}
+$$）。
+
+​		其次，AMR 图 $\mathcal{G}$ 由图 Transformer 编码器使用等式 12 编码到 *graph memory*（表示为 $H^{G}=\left\{h_{1}^{G}, h_{2}^{G}, \ldots, h_{M}^{G}\right\}$）。
+
+​		对于对话理解（图 3(b)） 和对话回复生成（图 3（c）），由于输出的不同性质，使用的特征集成方法略有不同。
+
+**Dialogue Understanding.	**与第 4.2 节类似，我们首先使用 JAMR aligner 获得节点到词对齐 $\mathcal{A}$。然后我们将词和 AMR 节点表示融合如下：
+$$
+\hat{h}_{i}=\left\{\begin{array}{lr}
+f\left(h_{i}^{S}, h_{j}^{G}\right), & \text { if } \exists j, \mathcal{A}\left(n_{j}\right)=w_{i} \\
+f\left(h_{i}^{S}, h_{\emptyset}\right), & \text { otherwise }
+\end{array}\right.\tag{17}
+$$
+其中 h∅ 是虚拟节点的向量表示（见图 2），f 定义为：
+$$
+h=\text { LayerNorm }\left(h_{1}+h_{2}\right)\tag{18}
+$$
+然后将融合的词表示输入到分类器中进行关系预测（等式 5）。
+
+**Dialogue Response Generation.**	暂空
+
+## 5 Dialogue Understanding Experiments
+
+我们在 DialogRE 上评估我们的模型，该模型总共包含 1,788 个对话、10,168 个关系三元组和 36 个关系类型。 平均而言，DialogRE 中的对话包含 4.5 个关系三元组和 12.9 个回合。 我们报告了原始 (v1) 和更新 (v2) 英文版的实验结果。
+
+### 5.1 Settings
+
+我们采用与 Yu 等人相同的输入格式和超参数设置，用于提出的模型和baseline。 特别地，输入序列构造为 [CLS]d[SEP]a1[SEP]a2[SEP]，其中 d 表示对话，a1 和 a2 是两个关联的参数。 在 Yu 等人的 BERT 模型中，只有 [CLS] 标记的隐藏状态被输入分类器进行预测，而我们的基线 ($BERT_c$) 额外采用 a1 和 a2 的隐藏状态。 所有超参数都是根据验证数据集的预测精度选择的（详细超参数见表 6）。
+
+**指标**	继之前在 DialogRE 上的工作之后，我们报告了标准 (F1) 和对话设置 (F1c; Yu 等人，2020) 中关系的宏观 F1 分数。  F1c 是在对话的前几轮中计算的，其中首先提到了两个参数。
+
+### 5.2 Main Results
+
+表 1 显示了不同系统在 DialogRE 上的结果。 我们将提出的模型与两种基于 BERT 的方法 BERT 和 $BERT_s$ 进行比较。 基于 BERT，$BERT_s$ 通过用特殊标记替换说话者参数来突出说话者信息。 为完整起见，我们还包括最近的方法，例如 AGGCN、LSR和 DHGAT。  $BERT_c$ 和 Hier, Dual 分别代表我们的基线和提出的模型。
+
+​		通过结合说话者信息，$BERT_s$ 提供了之前系统中最好的性能。 我们的 $BERT_c$ 基线在很大程度上优于 $BERT_s$，因为 $BERT_c$ 还考虑了用于分类的参数表示。  Hier (p < 0.01) 在所有设置中均显着优于 $BERT_c$，F1 分数平均提高 1.4 分。 在 F1c 下观察到类似的趋势。 这表明 AMR 中的语义信息有利于对话关系提取，因为 AMR 突出了核心实体和它们之间的语义关系。  Dual 的结果略好于 Hier，显示了对语义结构进行单独编码的效果。
+
+![image-20210929150102946](https://gitee.com/cao-hu/pictures/raw/master/img/image-20210929150102946.png)
+
+​		最后，Dual 和 Hier 的标准偏差值都低于基线。 这表明我们的方法在模型初始化方面更加稳健。
+
+### 5.3 Impact of Argument Distance
+
+我们根据两个参数之间基于话语的距离将 DialogRE (v2) 开发集的对话分为五组。 如图 4 所示，除了参数距离小于 5 时，Dual 的结果比 BERTc 更好。特别是，当参数距离大于 20 时，Dual 大大超过了 BERTc。比较表明 AMR 可以帮助模型 通过改进实体召回来更好地处理长期依赖关系。 除了话语距离之外，我们还考虑了词距离并观察到类似的趋势（如附录 7 所示）。
+
+![img](https://gitee.com/cao-hu/pictures/raw/master/img/M9%7D%7DJZWGCLVC6750KFIS%7DYT.png)
+
+### 5.4 Case Study
+
+图 5 显示了经理和可能已休假的员工之间的对话。 基线模型错误地预测两个对话者之间的关系是父子关系。 假设这是家庭成员之间的对话，它可能会受到对话中最后一句话的影响。 然而，所提出的模型成功地预测了对话者的关系，表明它可以从综合的角度提取对话中的全局语义信息。
+
+![img](https://gitee.com/cao-hu/pictures/raw/master/img/LKTZZU9HWTWRUUY{%BUU91A.png)
+
